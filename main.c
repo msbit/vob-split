@@ -61,6 +61,8 @@ int populate_vob_extents(char *path, int title, struct extent_t **vob_extents) {
     }
   }
   closedir(d);
+
+  *vob_extents = realloc(*vob_extents, sizeof(struct extent_t) * index);
   return index;
 }
 
