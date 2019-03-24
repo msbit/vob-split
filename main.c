@@ -21,32 +21,32 @@ void populate_pgc_extents(pgcit_t *vts_pgcit, struct pgc_extent_t **pgc_extents)
 
 int main(int argc, char **argv) {
   if (argc < 3) {
-    return -1;
+    exit(-1);
   }
 
   char *path = realpath(argv[1], NULL);
   if (path == NULL) {
     perror("realpath");
-    return -2;
+    exit(-2);
   }
 
   dvd_reader_t *dvd = DVDOpen(path);
   if (dvd == NULL) {
     perror("DVDOpen");
-    return -3;
+    exit(-3);
   }
 
   ifo_handle_t *vmg = ifoOpen(dvd, 0);
   if (vmg == NULL) {
     perror("ifoOpen");
-    return -4;
+    exit(-4);
   }
 
   int title = atoi(argv[2]);
   ifo_handle_t *ifo = ifoOpen(dvd, title);
   if (ifo == NULL) {
     perror("ifoOpen");
-    return -5;
+    exit(-5);
   }
 
   struct pgc_extent_t *pgc_extents;
