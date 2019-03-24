@@ -67,6 +67,67 @@ int populate_vob_extents(char *path, int title, struct extent_t **vob_extents) {
   return index;
 }
 
+void split(char *path, int title, struct extent_t *pgc_extents,
+           int pgc_extent_count, struct extent_t *vob_extents,
+           int vob_extent_count) {
+  int vob_in_index = 0, vob_in_sector = 0;
+  int vob_out_index = 0, vob_out_sector = 0;
+
+  FILE *vob_in;
+  FILE *vob_out;
+
+  char buffer[DVD_SECTOR_SIZE];
+
+  while (vob_in_index < vob_extent_count && vob_out_index < pgc_extent_count) {
+    if (vob_in == NULL) {
+      char filename[1024];
+      snprintf(filename, 1024, "%s/VTS_%02d_%d.VOB", path, title,
+               vob_in_index + 1);
+      printf("opening %s\n", filename);
+      vob_in = fopen(filename, "r");
+    }
+
+    if (vob_out == NULL) {
+      char filename[1024];
+      snprintf(filename, 1024, "out-%d.vob", vob_out_index);
+      printf("opening %s\n", filename);
+      vob_out = fopen(filename, "w");
+    }
+
+    if (fread(buffer, DVD_SECTOR_SIZE, 1, vob_in) < 1) {
+      perror("fread");
+      exit(-7);
+    }
+    vob_in_sector++;
+
+    if (fwrite(buffer, DVD_SECTOR_SIZE, 1, vob_out) < 1) {
+      perror("fwrite");
+      exit(-8);
+    }
+    vob_out_sector++;
+
+    if (vob_out_sector > pgc_extents[vob_out_index].last_sector) {
+      vob_out_index++;
+      fclose(vob_out);
+      vob_out = NULL;
+    }
+
+    if (vob_in_sector > vob_extents[vob_in_index].last_sector) {
+      vob_in_index++;
+      fclose(vob_in);
+      vob_in = NULL;
+    }
+  }
+
+  if (vob_in != NULL) {
+    fclose(vob_in);
+  }
+
+  if (vob_out != NULL) {
+    fclose(vob_out);
+  }
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     exit(-1);
@@ -105,15 +166,8 @@ int main(int argc, char **argv) {
 
   int vob_extent_count = populate_vob_extents(path, title, &vob_extents);
 
-  for (int i = 0; i < pgc_extent_count; i++) {
-    printf("%d %u %u\n", i, pgc_extents[i].first_sector,
-           pgc_extents[i].last_sector);
-  }
-
-  for (int i = 0; i < vob_extent_count; i++) {
-    printf("%d %u %u\n", i, vob_extents[i].first_sector,
-           vob_extents[i].last_sector);
-  }
+  split(path, title, pgc_extents, pgc_extent_count, vob_extents,
+        vob_extent_count);
 
   DVDClose(dvd);
 }
