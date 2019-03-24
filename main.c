@@ -1,11 +1,11 @@
+#include <dirent.h>
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_read.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 struct extent_t {
   uint32_t first_sector;
@@ -46,17 +46,18 @@ int populate_vob_extents(char *path, int title, struct extent_t **vob_extents) {
 
   uint32_t first_sector = 0;
   int index = 0;
-  while((dir = readdir(d)) != NULL) {
-    if (dir->d_type == DT_REG
-      && (strstr(dir->d_name, match_prefix) == dir->d_name)
-      && (strstr(dir->d_name, nomatch_prefix) != dir->d_name)) {
+  while ((dir = readdir(d)) != NULL) {
+    if (dir->d_type == DT_REG &&
+        (strstr(dir->d_name, match_prefix) == dir->d_name) &&
+        (strstr(dir->d_name, nomatch_prefix) != dir->d_name)) {
       struct stat st;
       char filename[1024];
       snprintf(filename, 1024, "%s/%s", path, dir->d_name);
       stat(filename, &st);
 
       uint32_t last_sector = first_sector + (st.st_size / DVD_SECTOR_SIZE);
-      (*vob_extents)[index++] = (struct extent_t){first_sector, last_sector - 1};
+      (*vob_extents)[index++] =
+          (struct extent_t){first_sector, last_sector - 1};
       first_sector = last_sector;
     }
   }
@@ -105,11 +106,13 @@ int main(int argc, char **argv) {
   int vob_extent_count = populate_vob_extents(path, title, &vob_extents);
 
   for (int i = 0; i < pgc_extent_count; i++) {
-    printf("%d %u %u\n", i, pgc_extents[i].first_sector, pgc_extents[i].last_sector);
+    printf("%d %u %u\n", i, pgc_extents[i].first_sector,
+           pgc_extents[i].last_sector);
   }
 
   for (int i = 0; i < vob_extent_count; i++) {
-    printf("%d %u %u\n", i, vob_extents[i].first_sector, vob_extents[i].last_sector);
+    printf("%d %u %u\n", i, vob_extents[i].first_sector,
+           vob_extents[i].last_sector);
   }
 
   DVDClose(dvd);
