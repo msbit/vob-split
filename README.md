@@ -8,8 +8,9 @@
 
 # Post
 
-`ffmpeg -i out-0.vob -map 0:1 -map 0:3 out-0.mkv`
-
-or
-
-`ffmpeg -i out-0.vob -map 0:1 -map 0:3 out-0.mp4`
+```
+for FILE in *.vob
+do
+  ffmpeg -i "${FILE}" -map 0:1 -map 0:3 "${FILE%vob}mp4" < /dev/null
+done
+```
