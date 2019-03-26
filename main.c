@@ -7,12 +7,60 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define DVD_SECTOR_SIZE 2048
+
 struct extent_t {
   uint32_t first_sector;
   uint32_t last_sector;
 };
 
-#define DVD_SECTOR_SIZE 2048
+int populate_pgc_extents(pgcit_t *, struct extent_t **);
+int populate_vob_extents(char *, int, struct extent_t **);
+void split(char *, int, struct extent_t *, int, struct extent_t *, int);
+
+int main(int argc, char **argv) {
+  if (argc < 3) {
+    exit(-1);
+  }
+
+  char *path = realpath(argv[1], NULL);
+  if (path == NULL) {
+    perror("realpath");
+    exit(-2);
+  }
+
+  dvd_reader_t *dvd = DVDOpen(path);
+  if (dvd == NULL) {
+    perror("DVDOpen");
+    exit(-3);
+  }
+
+  ifo_handle_t *vmg = ifoOpen(dvd, 0);
+  if (vmg == NULL) {
+    perror("ifoOpen");
+    exit(-4);
+  }
+
+  int title = atoi(argv[2]);
+  ifo_handle_t *ifo = ifoOpen(dvd, title);
+  if (ifo == NULL) {
+    perror("ifoOpen");
+    exit(-5);
+  }
+
+  struct extent_t *pgc_extents;
+
+  int pgc_extent_count = populate_pgc_extents(ifo->vts_pgcit, &pgc_extents);
+
+  struct extent_t *vob_extents;
+
+  int vob_extent_count = populate_vob_extents(path, title, &vob_extents);
+
+  split(path, title, pgc_extents, pgc_extent_count, vob_extents,
+        vob_extent_count);
+
+  DVDClose(dvd);
+}
 
 int populate_pgc_extents(pgcit_t *vts_pgcit, struct extent_t **pgc_extents) {
   *pgc_extents = malloc(sizeof(struct extent_t) * vts_pgcit->nr_of_pgci_srp);
@@ -126,48 +174,4 @@ void split(char *path, int title, struct extent_t *pgc_extents,
   if (vob_out != NULL) {
     fclose(vob_out);
   }
-}
-
-int main(int argc, char **argv) {
-  if (argc < 3) {
-    exit(-1);
-  }
-
-  char *path = realpath(argv[1], NULL);
-  if (path == NULL) {
-    perror("realpath");
-    exit(-2);
-  }
-
-  dvd_reader_t *dvd = DVDOpen(path);
-  if (dvd == NULL) {
-    perror("DVDOpen");
-    exit(-3);
-  }
-
-  ifo_handle_t *vmg = ifoOpen(dvd, 0);
-  if (vmg == NULL) {
-    perror("ifoOpen");
-    exit(-4);
-  }
-
-  int title = atoi(argv[2]);
-  ifo_handle_t *ifo = ifoOpen(dvd, title);
-  if (ifo == NULL) {
-    perror("ifoOpen");
-    exit(-5);
-  }
-
-  struct extent_t *pgc_extents;
-
-  int pgc_extent_count = populate_pgc_extents(ifo->vts_pgcit, &pgc_extents);
-
-  struct extent_t *vob_extents;
-
-  int vob_extent_count = populate_vob_extents(path, title, &vob_extents);
-
-  split(path, title, pgc_extents, pgc_extent_count, vob_extents,
-        vob_extent_count);
-
-  DVDClose(dvd);
 }
