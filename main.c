@@ -17,9 +17,11 @@ struct extent_t {
 int populate_pgc_extents(pgcit_t *, struct extent_t **);
 int populate_vob_extents(char *, int, struct extent_t **);
 void split(char *, int, struct extent_t *, int, struct extent_t *, int);
+void usage(int, char **, FILE *);
 
 int main(int argc, char **argv) {
   if (argc < 3) {
+    usage(argc, argv, stdout);
     exit(-1);
   }
 
@@ -174,4 +176,8 @@ void split(char *path, int title, struct extent_t *pgc_extents,
   if (vob_out != NULL) {
     fclose(vob_out);
   }
+}
+
+void usage(int argc, char **argv, FILE *f) {
+  fprintf(f, "Usage: %s </path/to/VIDEO_TS> <title-index>\n", argv[0]);
 }
