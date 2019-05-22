@@ -1,6 +1,6 @@
 # Building
 
-`gcc -o main main.c -ldvdread`
+`gcc $(pkg-config --cflags --libs dvdread) -o main main.c`
 
 # Running
 
