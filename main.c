@@ -101,8 +101,8 @@ int populate_vob_extents(char *path, int title, struct extent_t **vob_extents) {
         (strstr(dir->d_name, match_prefix) == dir->d_name) &&
         (strstr(dir->d_name, nomatch_prefix) != dir->d_name)) {
       struct stat st;
-      char filename[1024];
-      snprintf(filename, 1024, "%s/%s", path, dir->d_name);
+      char filename[FILENAME_MAX];
+      snprintf(filename, FILENAME_MAX, "%s/%s", path, dir->d_name);
       stat(filename, &st);
 
       uint32_t last_sector = first_sector + (st.st_size / DVD_SECTOR_SIZE);
@@ -130,16 +130,16 @@ void split(char *path, int title, struct extent_t *pgc_extents,
 
   while (vob_in_index < vob_extent_count && vob_out_index < pgc_extent_count) {
     if (vob_in == NULL) {
-      char filename[1024];
-      snprintf(filename, 1024, "%s/VTS_%02d_%d.VOB", path, title,
+      char filename[FILENAME_MAX];
+      snprintf(filename, FILENAME_MAX, "%s/VTS_%02d_%d.VOB", path, title,
                vob_in_index + 1);
       printf("opening %s\n", filename);
       vob_in = fopen(filename, "r");
     }
 
     if (vob_out == NULL) {
-      char filename[1024];
-      snprintf(filename, 1024, "out-%d.vob", vob_out_index);
+      char filename[FILENAME_MAX];
+      snprintf(filename, FILENAME_MAX, "out-%d.vob", vob_out_index);
       printf("opening %s\n", filename);
       vob_out = fopen(filename, "w");
     }
