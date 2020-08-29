@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 
   char *endptr;
   int title = strtoimax(argv[2], &endptr, 10);
-  if (endptr != '\0') {
+  if (*endptr != '\0') {
     fprintf(stdout, "title-index must be numeric\n");
     usage(argc, argv, stdout);
     exit(-2);
