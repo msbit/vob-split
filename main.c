@@ -126,9 +126,9 @@ size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents)
   return index;
 }
 
-void split(char *path, size_t title, struct extent_t *pgc_extents,
-           size_t pgc_extent_count, struct extent_t *vob_extents,
-           size_t vob_extent_count) {
+void split(char *path, size_t title,
+           struct extent_t *pgc_extents, size_t pgc_extent_count,
+           struct extent_t *vob_extents, size_t vob_extent_count) {
   size_t vob_in_index = 0, vob_out_index = 0;
   uint32_t vob_in_sector = 0, vob_out_sector = 0;
 
