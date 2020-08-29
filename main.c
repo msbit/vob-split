@@ -64,21 +64,21 @@ int main(int argc, char **argv) {
   DVDClose(dvd);
 }
 
-int populate_pgc_extents(pgcit_t *vts_pgcit, struct extent_t **pgc_extents) {
-  *pgc_extents = malloc(sizeof(struct extent_t) * vts_pgcit->nr_of_pgci_srp);
+int populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
+  *extents = malloc(sizeof(struct extent_t) * pgcit->nr_of_pgci_srp);
 
-  for (int i = 0; i < vts_pgcit->nr_of_pgci_srp; i++) {
-    pgc_t *pgc = vts_pgcit->pgci_srp[i].pgc;
+  for (int i = 0; i < pgcit->nr_of_pgci_srp; i++) {
+    pgc_t *pgc = pgcit->pgci_srp[i].pgc;
     uint32_t first_sector = pgc->cell_playback[0].first_sector;
     uint32_t last_sector = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
-    (*pgc_extents)[i] = (struct extent_t){first_sector, last_sector};
+    (*extents)[i] = (struct extent_t){first_sector, last_sector};
   }
 
-  return vts_pgcit->nr_of_pgci_srp;
+  return pgcit->nr_of_pgci_srp;
 }
 
-int populate_vob_extents(char *path, int title, struct extent_t **vob_extents) {
-  *vob_extents = malloc(sizeof(struct extent_t) * 10);
+int populate_vob_extents(char *path, int title, struct extent_t **extents) {
+  *extents = malloc(sizeof(struct extent_t) * 10);
 
   DIR *d;
   struct dirent *dir;
@@ -106,14 +106,13 @@ int populate_vob_extents(char *path, int title, struct extent_t **vob_extents) {
       stat(filename, &st);
 
       uint32_t last_sector = first_sector + (st.st_size / DVD_SECTOR_SIZE);
-      (*vob_extents)[index++] =
-          (struct extent_t){first_sector, last_sector - 1};
+      (*extents)[index++] = (struct extent_t){first_sector, last_sector - 1};
       first_sector = last_sector;
     }
   }
   closedir(d);
 
-  *vob_extents = realloc(*vob_extents, sizeof(struct extent_t) * index);
+  *extents = realloc(*extents, sizeof(struct extent_t) * index);
   return index;
 }
 
