@@ -11,14 +11,14 @@
 #define DVD_SECTOR_SIZE 2048
 #define MAX_VOB_PER_VTS 10
 
-struct extent_t {
+typedef struct {
   uint32_t first_sector;
   uint32_t last_sector;
-};
+} extent_t;
 
-size_t populate_pgc_extents(pgcit_t *, struct extent_t **);
-size_t populate_vob_extents(char *, size_t, struct extent_t **);
-void split(char *, size_t, struct extent_t *, size_t, struct extent_t *, size_t);
+size_t populate_pgc_extents(pgcit_t *, extent_t **);
+size_t populate_vob_extents(char *, size_t, extent_t **);
+void split(char *, size_t, extent_t *, size_t, extent_t *, size_t);
 void usage(int, char **, FILE *);
 
 int main(int argc, char **argv) {
@@ -60,11 +60,11 @@ int main(int argc, char **argv) {
     exit(-6);
   }
 
-  struct extent_t *pgc_extents;
+  extent_t *pgc_extents;
 
   size_t pgc_extent_count = populate_pgc_extents(ifo->vts_pgcit, &pgc_extents);
 
-  struct extent_t *vob_extents;
+  extent_t *vob_extents;
 
   size_t vob_extent_count = populate_vob_extents(path, title, &vob_extents);
 
@@ -74,21 +74,21 @@ int main(int argc, char **argv) {
   DVDClose(dvd);
 }
 
-size_t populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
-  *extents = malloc(sizeof(struct extent_t) * pgcit->nr_of_pgci_srp);
+size_t populate_pgc_extents(pgcit_t *pgcit, extent_t **extents) {
+  *extents = malloc(sizeof(extent_t) * pgcit->nr_of_pgci_srp);
 
   for (size_t i = 0; i < pgcit->nr_of_pgci_srp; i++) {
     pgc_t *pgc = pgcit->pgci_srp[i].pgc;
     uint32_t first_sector = pgc->cell_playback[0].first_sector;
     uint32_t last_sector = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
-    (*extents)[i] = (struct extent_t){first_sector, last_sector};
+    (*extents)[i] = (extent_t){first_sector, last_sector};
   }
 
   return pgcit->nr_of_pgci_srp;
 }
 
-size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents) {
-  *extents = malloc(sizeof(struct extent_t) * MAX_VOB_PER_VTS);
+size_t populate_vob_extents(char *path, size_t title, extent_t **extents) {
+  *extents = malloc(sizeof(extent_t) * MAX_VOB_PER_VTS);
 
   DIR *d;
   struct dirent *dir;
@@ -116,19 +116,19 @@ size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents)
       stat(filename, &st);
 
       uint32_t last_sector = first_sector + (st.st_size / DVD_SECTOR_SIZE);
-      (*extents)[index++] = (struct extent_t){first_sector, last_sector - 1};
+      (*extents)[index++] = (extent_t){first_sector, last_sector - 1};
       first_sector = last_sector;
     }
   }
   closedir(d);
 
-  *extents = realloc(*extents, sizeof(struct extent_t) * index);
+  *extents = realloc(*extents, sizeof(extent_t) * index);
   return index;
 }
 
 void split(char *path, size_t title,
-           struct extent_t *pgc_extents, size_t pgc_extent_count,
-           struct extent_t *vob_extents, size_t vob_extent_count) {
+           extent_t *pgc_extents, size_t pgc_extent_count,
+           extent_t *vob_extents, size_t vob_extent_count) {
   size_t in_index = 0, out_index = 0;
   uint32_t in_sector = 0, out_sector = 0;
 
