@@ -129,61 +129,60 @@ size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents)
 void split(char *path, size_t title,
            struct extent_t *pgc_extents, size_t pgc_extent_count,
            struct extent_t *vob_extents, size_t vob_extent_count) {
-  size_t vob_in_index = 0, vob_out_index = 0;
-  uint32_t vob_in_sector = 0, vob_out_sector = 0;
+  size_t in_index = 0, out_index = 0;
+  uint32_t in_sector = 0, out_sector = 0;
 
-  FILE *vob_in = NULL;
-  FILE *vob_out = NULL;
+  FILE *in = NULL;
+  FILE *out = NULL;
 
   char buffer[DVD_SECTOR_SIZE];
 
-  while (vob_in_index < vob_extent_count && vob_out_index < pgc_extent_count) {
-    if (vob_in == NULL) {
+  while (in_index < vob_extent_count && out_index < pgc_extent_count) {
+    if (in == NULL) {
       char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "%s/VTS_%02zu_%zu.VOB", path, title,
-               vob_in_index + 1);
+      snprintf(filename, FILENAME_MAX, "%s/VTS_%02zu_%zu.VOB", path, title, in_index + 1);
       printf("opening %s\n", filename);
-      vob_in = fopen(filename, "r");
+      in = fopen(filename, "r");
     }
 
-    if (vob_out == NULL) {
+    if (out == NULL) {
       char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "out-%02zu-%zu.vob", title, vob_out_index);
+      snprintf(filename, FILENAME_MAX, "out-%02zu-%zu.vob", title, out_index);
       printf("opening %s\n", filename);
-      vob_out = fopen(filename, "w");
+      out = fopen(filename, "w");
     }
 
-    if (fread(buffer, DVD_SECTOR_SIZE, 1, vob_in) < 1) {
+    if (fread(buffer, DVD_SECTOR_SIZE, 1, in) < 1) {
       perror("fread");
       exit(-8);
     }
-    vob_in_sector++;
+    in_sector++;
 
-    if (fwrite(buffer, DVD_SECTOR_SIZE, 1, vob_out) < 1) {
+    if (fwrite(buffer, DVD_SECTOR_SIZE, 1, out) < 1) {
       perror("fwrite");
       exit(-9);
     }
-    vob_out_sector++;
+    out_sector++;
 
-    if (vob_out_sector > pgc_extents[vob_out_index].last_sector) {
-      vob_out_index++;
-      fclose(vob_out);
-      vob_out = NULL;
+    if (out_sector > pgc_extents[out_index].last_sector) {
+      out_index++;
+      fclose(out);
+      out = NULL;
     }
 
-    if (vob_in_sector > vob_extents[vob_in_index].last_sector) {
-      vob_in_index++;
-      fclose(vob_in);
-      vob_in = NULL;
+    if (in_sector > vob_extents[in_index].last_sector) {
+      in_index++;
+      fclose(in);
+      in = NULL;
     }
   }
 
-  if (vob_in != NULL) {
-    fclose(vob_in);
+  if (in != NULL) {
+    fclose(in);
   }
 
-  if (vob_out != NULL) {
-    fclose(vob_out);
+  if (out != NULL) {
+    fclose(out);
   }
 }
 
