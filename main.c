@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_read.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +44,7 @@ int main(int argc, char **argv) {
     exit(-4);
   }
 
-  int title = atoi(argv[2]);
+  int title = strtoimax(argv[2], NULL, 10);
   ifo_handle_t *ifo = ifoOpen(dvd, title);
   if (ifo == NULL) {
     perror("ifoOpen");
