@@ -148,7 +148,7 @@ void split(char *path, int title, struct extent_t *pgc_extents,
 
     if (vob_out == NULL) {
       char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "out-%d.vob", vob_out_index);
+      snprintf(filename, FILENAME_MAX, "out-%02d-%d.vob", title, vob_out_index);
       printf("opening %s\n", filename);
       vob_out = fopen(filename, "w");
     }
