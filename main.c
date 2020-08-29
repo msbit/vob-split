@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_read.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,29 +26,35 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
+  char *endptr;
+  int title = strtoimax(argv[2], &endptr, 10);
+  if (endptr != '\0') {
+    usage(argc, argv, stdout);
+    exit(-2);
+  }
+
   char *path = realpath(argv[1], NULL);
   if (path == NULL) {
     perror("realpath");
-    exit(-2);
+    exit(-3);
   }
 
   dvd_reader_t *dvd = DVDOpen(path);
   if (dvd == NULL) {
     perror("DVDOpen");
-    exit(-3);
+    exit(-4);
   }
 
   ifo_handle_t *vmg = ifoOpen(dvd, 0);
   if (vmg == NULL) {
     perror("ifoOpen");
-    exit(-4);
+    exit(-5);
   }
 
-  int title = atoi(argv[2]);
   ifo_handle_t *ifo = ifoOpen(dvd, title);
   if (ifo == NULL) {
     perror("ifoOpen");
-    exit(-5);
+    exit(-6);
   }
 
   struct extent_t *pgc_extents;
@@ -85,7 +92,7 @@ int populate_vob_extents(char *path, int title, struct extent_t **extents) {
   d = opendir(path);
   if (d == NULL) {
     perror("opendir");
-    exit(-6);
+    exit(-7);
   }
 
   char match_prefix[20];
@@ -145,13 +152,13 @@ void split(char *path, int title, struct extent_t *pgc_extents,
 
     if (fread(buffer, DVD_SECTOR_SIZE, 1, vob_in) < 1) {
       perror("fread");
-      exit(-7);
+      exit(-8);
     }
     vob_in_sector++;
 
     if (fwrite(buffer, DVD_SECTOR_SIZE, 1, vob_out) < 1) {
       perror("fwrite");
-      exit(-8);
+      exit(-9);
     }
     vob_out_sector++;
 
