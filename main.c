@@ -132,8 +132,8 @@ void split(char *path, size_t title, struct extent_t *pgc_extents,
   size_t vob_in_index = 0, vob_out_index = 0;
   uint32_t vob_in_sector = 0, vob_out_sector = 0;
 
-  FILE *vob_in;
-  FILE *vob_out;
+  FILE *vob_in = NULL;
+  FILE *vob_out = NULL;
 
   char buffer[DVD_SECTOR_SIZE];
 
