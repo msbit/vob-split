@@ -22,6 +22,7 @@ void usage(int, char **, FILE *);
 
 int main(int argc, char **argv) {
   if (argc < 3) {
+    fprintf(stdout, "2 arguments required\n");
     usage(argc, argv, stdout);
     exit(-1);
   }
@@ -29,6 +30,7 @@ int main(int argc, char **argv) {
   char *endptr;
   int title = strtoimax(argv[2], &endptr, 10);
   if (endptr != '\0') {
+    fprintf(stdout, "title-index must be numeric\n");
     usage(argc, argv, stdout);
     exit(-2);
   }
