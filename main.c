@@ -9,6 +9,7 @@
 #include <sys/types.h>
 
 #define DVD_SECTOR_SIZE 2048
+#define MAX_VOB_PER_VTS 10
 
 struct extent_t {
   uint32_t first_sector;
@@ -87,7 +88,7 @@ int populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
 }
 
 int populate_vob_extents(char *path, int title, struct extent_t **extents) {
-  *extents = malloc(sizeof(struct extent_t) * 10);
+  *extents = malloc(sizeof(struct extent_t) * MAX_VOB_PER_VTS);
 
   DIR *d;
   struct dirent *dir;
