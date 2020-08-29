@@ -16,9 +16,9 @@ struct extent_t {
   uint32_t last_sector;
 };
 
-int populate_pgc_extents(pgcit_t *, struct extent_t **);
-int populate_vob_extents(char *, int, struct extent_t **);
-void split(char *, int, struct extent_t *, int, struct extent_t *, int);
+size_t populate_pgc_extents(pgcit_t *, struct extent_t **);
+size_t populate_vob_extents(char *, size_t, struct extent_t **);
+void split(char *, size_t, struct extent_t *, size_t, struct extent_t *, size_t);
 void usage(int, char **, FILE *);
 
 int main(int argc, char **argv) {
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   }
 
   char *endptr;
-  int title = strtoimax(argv[2], &endptr, 10);
+  size_t title = strtoimax(argv[2], &endptr, 10);
   if (*endptr != '\0') {
     fprintf(stdout, "title-index must be numeric\n");
     usage(argc, argv, stdout);
@@ -62,11 +62,11 @@ int main(int argc, char **argv) {
 
   struct extent_t *pgc_extents;
 
-  int pgc_extent_count = populate_pgc_extents(ifo->vts_pgcit, &pgc_extents);
+  size_t pgc_extent_count = populate_pgc_extents(ifo->vts_pgcit, &pgc_extents);
 
   struct extent_t *vob_extents;
 
-  int vob_extent_count = populate_vob_extents(path, title, &vob_extents);
+  size_t vob_extent_count = populate_vob_extents(path, title, &vob_extents);
 
   split(path, title, pgc_extents, pgc_extent_count, vob_extents,
         vob_extent_count);
@@ -74,10 +74,10 @@ int main(int argc, char **argv) {
   DVDClose(dvd);
 }
 
-int populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
+size_t populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
   *extents = malloc(sizeof(struct extent_t) * pgcit->nr_of_pgci_srp);
 
-  for (int i = 0; i < pgcit->nr_of_pgci_srp; i++) {
+  for (size_t i = 0; i < pgcit->nr_of_pgci_srp; i++) {
     pgc_t *pgc = pgcit->pgci_srp[i].pgc;
     uint32_t first_sector = pgc->cell_playback[0].first_sector;
     uint32_t last_sector = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
@@ -87,7 +87,7 @@ int populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
   return pgcit->nr_of_pgci_srp;
 }
 
-int populate_vob_extents(char *path, int title, struct extent_t **extents) {
+size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents) {
   *extents = malloc(sizeof(struct extent_t) * MAX_VOB_PER_VTS);
 
   DIR *d;
@@ -101,11 +101,11 @@ int populate_vob_extents(char *path, int title, struct extent_t **extents) {
   char match_prefix[20];
   char nomatch_prefix[20];
 
-  snprintf(match_prefix, 20, "VTS_%02d_", title);
-  snprintf(nomatch_prefix, 20, "VTS_%02d_0", title);
+  snprintf(match_prefix, 20, "VTS_%02zu_", title);
+  snprintf(nomatch_prefix, 20, "VTS_%02zu_0", title);
 
   uint32_t first_sector = 0;
-  int index = 0;
+  size_t index = 0;
   while ((dir = readdir(d)) != NULL) {
     if (dir->d_type == DT_REG &&
         (strstr(dir->d_name, match_prefix) == dir->d_name) &&
@@ -126,11 +126,11 @@ int populate_vob_extents(char *path, int title, struct extent_t **extents) {
   return index;
 }
 
-void split(char *path, int title, struct extent_t *pgc_extents,
-           int pgc_extent_count, struct extent_t *vob_extents,
-           int vob_extent_count) {
-  int vob_in_index = 0, vob_in_sector = 0;
-  int vob_out_index = 0, vob_out_sector = 0;
+void split(char *path, size_t title, struct extent_t *pgc_extents,
+           size_t pgc_extent_count, struct extent_t *vob_extents,
+           size_t vob_extent_count) {
+  size_t vob_in_index = 0, vob_out_index = 0;
+  uint32_t vob_in_sector = 0, vob_out_sector = 0;
 
   FILE *vob_in;
   FILE *vob_out;
@@ -140,7 +140,7 @@ void split(char *path, int title, struct extent_t *pgc_extents,
   while (vob_in_index < vob_extent_count && vob_out_index < pgc_extent_count) {
     if (vob_in == NULL) {
       char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "%s/VTS_%02d_%d.VOB", path, title,
+      snprintf(filename, FILENAME_MAX, "%s/VTS_%02zu_%zu.VOB", path, title,
                vob_in_index + 1);
       printf("opening %s\n", filename);
       vob_in = fopen(filename, "r");
@@ -148,7 +148,7 @@ void split(char *path, int title, struct extent_t *pgc_extents,
 
     if (vob_out == NULL) {
       char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "out-%02d-%d.vob", title, vob_out_index);
+      snprintf(filename, FILENAME_MAX, "out-%02zu-%zu.vob", title, vob_out_index);
       printf("opening %s\n", filename);
       vob_out = fopen(filename, "w");
     }
