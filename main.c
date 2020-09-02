@@ -12,8 +12,8 @@
 #define MAX_VOB_PER_VTS 10
 
 typedef struct {
-  uint32_t first_sector;
-  uint32_t last_sector;
+  uint32_t first;
+  uint32_t last;
 } extent_t;
 
 size_t populate_pgc_extents(pgcit_t *, extent_t **);
@@ -79,9 +79,9 @@ size_t populate_pgc_extents(pgcit_t *pgcit, extent_t **extents) {
 
   for (size_t i = 0; i < pgcit->nr_of_pgci_srp; i++) {
     pgc_t *pgc = pgcit->pgci_srp[i].pgc;
-    uint32_t first_sector = pgc->cell_playback[0].first_sector;
-    uint32_t last_sector = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
-    (*extents)[i] = (extent_t){first_sector, last_sector};
+    uint32_t first = pgc->cell_playback[0].first_sector;
+    uint32_t last = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
+    (*extents)[i] = (extent_t){first, last};
   }
 
   return pgcit->nr_of_pgci_srp;
@@ -104,7 +104,7 @@ size_t populate_vob_extents(char *path, size_t title, extent_t **extents) {
   snprintf(match_prefix, 20, "VTS_%02zu_", title);
   snprintf(nomatch_prefix, 20, "VTS_%02zu_0", title);
 
-  uint32_t first_sector = 0;
+  uint32_t first = 0;
   size_t index = 0;
   while ((dir = readdir(d)) != NULL) {
     if (dir->d_type == DT_REG &&
@@ -115,9 +115,9 @@ size_t populate_vob_extents(char *path, size_t title, extent_t **extents) {
       snprintf(filename, FILENAME_MAX, "%s/%s", path, dir->d_name);
       stat(filename, &st);
 
-      uint32_t last_sector = first_sector + (st.st_size / DVD_SECTOR_SIZE);
-      (*extents)[index++] = (extent_t){first_sector, last_sector - 1};
-      first_sector = last_sector;
+      uint32_t last = first + (st.st_size / DVD_SECTOR_SIZE);
+      (*extents)[index++] = (extent_t){first, last - 1};
+      first = last;
     }
   }
   closedir(d);
@@ -164,13 +164,13 @@ void split(char *path, size_t title,
     }
     out_sector++;
 
-    if (out_sector > pgc_extents[out_index].last_sector) {
+    if (out_sector > pgc_extents[out_index].last) {
       out_index++;
       fclose(out);
       out = NULL;
     }
 
-    if (in_sector > vob_extents[in_index].last_sector) {
+    if (in_sector > vob_extents[in_index].last) {
       in_index++;
       fclose(in);
       in = NULL;
