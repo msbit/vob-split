@@ -16,7 +16,7 @@ struct extent_t {
   uint32_t last;
 };
 
-size_t populate_pgc_extents(const char *path, size_t title, struct extent_t **extents) {
+size_t populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
   dvd_reader_t *dvd = DVDOpen(path);
   if (dvd == NULL) {
     perror("DVDOpen");
@@ -41,13 +41,13 @@ size_t populate_pgc_extents(const char *path, size_t title, struct extent_t **ex
   pgcit_t *pgcit = ifo->vts_pgcit;
   size_t count = pgcit->nr_of_pgci_srp;
 
-  *extents = malloc(sizeof(struct extent_t) * count);
+  *extents = malloc(sizeof(extent_t) * count);
 
   for (size_t i = 0; i < count; i++) {
     pgc_t *pgc = pgcit->pgci_srp[i].pgc;
     uint32_t first = pgc->cell_playback[0].first_sector;
     uint32_t last = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
-    (*extents)[i] = (struct extent_t){first, last};
+    (*extents)[i] = (extent_t){first, last};
   }
 
   ifoClose(ifo);
@@ -56,8 +56,8 @@ size_t populate_pgc_extents(const char *path, size_t title, struct extent_t **ex
   return count;
 }
 
-size_t populate_vob_extents(const char *path, size_t title, struct extent_t **extents) {
-  *extents = malloc(sizeof(struct extent_t) * MAX_VOB_PER_VTS);
+size_t populate_vob_extents(const char *path, size_t title, extent_t **extents) {
+  *extents = malloc(sizeof(extent_t) * MAX_VOB_PER_VTS);
 
   DIR *d;
   struct dirent *dir;
@@ -86,18 +86,18 @@ size_t populate_vob_extents(const char *path, size_t title, struct extent_t **ex
     stat(filename, &st);
 
     uint32_t last = first + (st.st_size / DVD_SECTOR_SIZE);
-    (*extents)[index++] = (struct extent_t){first, last - 1};
+    (*extents)[index++] = (extent_t){first, last - 1};
     first = last;
   }
   closedir(d);
 
-  *extents = realloc(*extents, sizeof(struct extent_t) * index);
+  *extents = realloc(*extents, sizeof(extent_t) * index);
   return index;
 }
 
 void split(const char *path, size_t title,
-           const struct extent_t *pgc_extents, size_t pgc_extent_count,
-           const struct extent_t *vob_extents, size_t vob_extent_count) {
+           const extent_t *pgc_extents, size_t pgc_extent_count,
+           const extent_t *vob_extents, size_t vob_extent_count) {
   size_t in_index = 0, out_index = 0;
   uint32_t in_sector = 0, out_sector = 0;
 

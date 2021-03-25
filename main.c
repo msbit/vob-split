@@ -28,10 +28,10 @@ int main(int argc, char **argv) {
     exit(-3);
   }
 
-  struct extent_t *pgc_extents;
+  extent_t *pgc_extents;
   size_t pgc_extent_count = populate_pgc_extents(path, title, &pgc_extents);
 
-  struct extent_t *vob_extents;
+  extent_t *vob_extents;
   size_t vob_extent_count = populate_vob_extents(path, title, &vob_extents);
 
   split(path, title,
