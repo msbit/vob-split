@@ -16,18 +16,18 @@ struct extent_t {
   uint32_t last;
 };
 
-size_t populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
+int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
   dvd_reader_t *dvd = DVDOpen(path);
   if (dvd == NULL) {
     perror("DVDOpen");
-    exit(-4);
+    return -1;
   }
 
   ifo_handle_t *vmg = ifoOpen(dvd, 0);
   if (vmg == NULL) {
     perror("ifoOpen");
     DVDClose(dvd);
-    exit(-5);
+    return -2;
   }
   ifoClose(vmg);
 
@@ -35,7 +35,7 @@ size_t populate_pgc_extents(const char *path, size_t title, extent_t **extents) 
   if (ifo == NULL) {
     perror("ifoOpen");
     DVDClose(dvd);
-    exit(-6);
+    return -3;
   }
 
   pgcit_t *pgcit = ifo->vts_pgcit;
@@ -56,7 +56,7 @@ size_t populate_pgc_extents(const char *path, size_t title, extent_t **extents) 
   return count;
 }
 
-size_t populate_vob_extents(const char *path, size_t title, extent_t **extents) {
+int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
   *extents = malloc(sizeof(extent_t) * MAX_VOB_PER_VTS);
 
   DIR *d;
@@ -64,7 +64,7 @@ size_t populate_vob_extents(const char *path, size_t title, extent_t **extents) 
   d = opendir(path);
   if (d == NULL) {
     perror("opendir");
-    exit(-7);
+    return -1;
   }
 
   char match_prefix[20];
@@ -95,7 +95,7 @@ size_t populate_vob_extents(const char *path, size_t title, extent_t **extents) 
   return index;
 }
 
-void split(const char *path, size_t title,
+int split(const char *path, size_t title,
            const extent_t *pgc_extents, size_t pgc_extent_count,
            const extent_t *vob_extents, size_t vob_extent_count) {
   size_t in_index = 0, out_index = 0;
@@ -123,13 +123,13 @@ void split(const char *path, size_t title,
 
     if (fread(buffer, DVD_SECTOR_SIZE, 1, in) < 1) {
       perror("fread");
-      exit(-8);
+      return -1;
     }
     in_sector++;
 
     if (fwrite(buffer, DVD_SECTOR_SIZE, 1, out) < 1) {
       perror("fwrite");
-      exit(-9);
+      return -2;
     }
     out_sector++;
 
@@ -149,4 +149,6 @@ void split(const char *path, size_t title,
   if (in != NULL) { fclose(in); }
 
   if (out != NULL) { fclose(out); }
+
+  return 0;
 }
