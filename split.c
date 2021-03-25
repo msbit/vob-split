@@ -26,12 +26,15 @@ size_t populate_pgc_extents(char *path, size_t title, struct extent_t **extents)
   ifo_handle_t *vmg = ifoOpen(dvd, 0);
   if (vmg == NULL) {
     perror("ifoOpen");
+    DVDClose(dvd);
     exit(-5);
   }
+  ifoClose(vmg);
 
   ifo_handle_t *ifo = ifoOpen(dvd, title);
   if (ifo == NULL) {
     perror("ifoOpen");
+    DVDClose(dvd);
     exit(-6);
   }
 
@@ -47,6 +50,7 @@ size_t populate_pgc_extents(char *path, size_t title, struct extent_t **extents)
     (*extents)[i] = (struct extent_t){first, last};
   }
 
+  ifoClose(ifo);
   DVDClose(dvd);
 
   return count;
@@ -142,11 +146,7 @@ void split(char *path, size_t title,
     }
   }
 
-  if (in != NULL) {
-    fclose(in);
-  }
+  if (in != NULL) { fclose(in); }
 
-  if (out != NULL) {
-    fclose(out);
-  }
+  if (out != NULL) { fclose(out); }
 }
