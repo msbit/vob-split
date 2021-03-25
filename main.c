@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,8 +24,8 @@ int main(int argc, char **argv) {
     exit(-2);
   }
 
-  char *path = realpath(argv[1], NULL);
-  if (path == NULL) {
+  char path[PATH_MAX];
+  if (realpath(argv[1], path) == NULL) {
     perror("realpath");
     exit(-3);
   }
