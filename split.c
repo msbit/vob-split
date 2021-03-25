@@ -41,7 +41,11 @@ int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
   pgcit_t *pgcit = ifo->vts_pgcit;
   size_t count = pgcit->nr_of_pgci_srp;
 
-  *extents = malloc(sizeof(extent_t) * count);
+  *extents = calloc(count, sizeof(extent_t));
+  if (*extents == NULL) {
+    perror("calloc");
+    return -4;
+  }
 
   for (size_t i = 0; i < count; i++) {
     pgc_t *pgc = pgcit->pgci_srp[i].pgc;
@@ -57,14 +61,18 @@ int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
 }
 
 int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
-  *extents = malloc(sizeof(extent_t) * MAX_VOB_PER_VTS);
+  *extents = calloc(MAX_VOB_PER_VTS, sizeof(extent_t));
+  if (*extents == NULL) {
+    perror("calloc");
+    return -1;
+  }
 
   DIR *d;
   struct dirent *dir;
   d = opendir(path);
   if (d == NULL) {
     perror("opendir");
-    return -1;
+    return -2;
   }
 
   char match_prefix[20];
@@ -92,6 +100,11 @@ int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
   closedir(d);
 
   *extents = realloc(*extents, sizeof(extent_t) * index);
+  if (*extents == NULL) {
+    perror("realloc");
+    return -3;
+  }
+
   return index;
 }
 
