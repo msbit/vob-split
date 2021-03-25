@@ -110,14 +110,14 @@ int split(const char *path, size_t title,
     if (in == NULL) {
       char filename[FILENAME_MAX];
       snprintf(filename, FILENAME_MAX, "%s/VTS_%02zu_%zu.VOB", path, title, in_index + 1);
-      printf("opening %s\n", filename);
+      fprintf(stdout, "opening %s\n", filename);
       in = fopen(filename, "r");
     }
 
     if (out == NULL) {
       char filename[FILENAME_MAX];
       snprintf(filename, FILENAME_MAX, "out-%02zu-%zu.vob", title, out_index);
-      printf("opening %s\n", filename);
+      fprintf(stdout, "opening %s\n", filename);
       out = fopen(filename, "w");
     }
 
