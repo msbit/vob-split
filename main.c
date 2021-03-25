@@ -22,10 +22,16 @@ int main(int argc, char **argv) {
     return -2;
   }
 
+  if (title == 0) {
+    fprintf(stdout, "title-index must be greater than 0\n");
+    usage(argc, argv, stdout);
+    return -3;
+  }
+
   char path[PATH_MAX];
   if (realpath(argv[1], path) == NULL) {
     perror("realpath");
-    return -3;
+    return -4;
   }
 
   extent_t *pgc_extents;
