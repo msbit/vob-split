@@ -16,7 +16,7 @@ struct extent_t {
   uint32_t last;
 };
 
-size_t populate_pgc_extents(char *path, size_t title, struct extent_t **extents) {
+size_t populate_pgc_extents(const char *path, size_t title, struct extent_t **extents) {
   dvd_reader_t *dvd = DVDOpen(path);
   if (dvd == NULL) {
     perror("DVDOpen");
@@ -56,7 +56,7 @@ size_t populate_pgc_extents(char *path, size_t title, struct extent_t **extents)
   return count;
 }
 
-size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents) {
+size_t populate_vob_extents(const char *path, size_t title, struct extent_t **extents) {
   *extents = malloc(sizeof(struct extent_t) * MAX_VOB_PER_VTS);
 
   DIR *d;
@@ -95,9 +95,9 @@ size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents)
   return index;
 }
 
-void split(char *path, size_t title,
-           struct extent_t *pgc_extents, size_t pgc_extent_count,
-           struct extent_t *vob_extents, size_t vob_extent_count) {
+void split(const char *path, size_t title,
+           const struct extent_t *pgc_extents, size_t pgc_extent_count,
+           const struct extent_t *vob_extents, size_t vob_extent_count) {
   size_t in_index = 0, out_index = 0;
   uint32_t in_sector = 0, out_sector = 0;
 
