@@ -88,9 +88,10 @@ int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
     if (strstr(dir->d_name, match_prefix) != dir->d_name) { continue; }
     if (strstr(dir->d_name, nomatch_prefix) == dir->d_name) { continue; }
 
-    struct stat st;
     char filename[FILENAME_MAX];
     snprintf(filename, FILENAME_MAX, "%s/%s", path, dir->d_name);
+
+    struct stat st;
     stat(filename, &st);
 
     uint32_t last = first + (st.st_size / DVD_SECTOR_SIZE);

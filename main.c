@@ -56,6 +56,8 @@ int main(int argc, char **argv) {
 
   free(pgc_extents);
   free(vob_extents);
+
+  return 0;
 }
 
 void usage(int argc, char **argv, FILE *f) {
