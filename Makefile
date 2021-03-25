@@ -7,5 +7,9 @@ all: main
 
 main: $(OBJECT_FILES)
 
+main.o: main.c split.h
+
+split.o: split.c split.h
+
 clean:
 	rm -f $(OBJECT_FILES) $(TARGETS)
