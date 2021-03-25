@@ -1,5 +1,5 @@
 CFLAGS += $(shell pkg-config --cflags dvdread)
-LDFLAGS += $(shell pkg-config --libs dvdread)
+LDLIBS += $(shell pkg-config --libs dvdread)
 OBJECT_FILES = main.o
 TARGETS = main
 
