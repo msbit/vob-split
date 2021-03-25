@@ -22,15 +22,15 @@ int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
     return -1;
   }
 
-  ifo_handle_t *vmg = ifoOpen(dvd, 0);
-  if (vmg == NULL) {
+  ifo_handle_t *ifo = ifoOpen(dvd, 0);
+  if (ifo == NULL) {
     perror("ifoOpen");
     DVDClose(dvd);
     return -2;
   }
-  ifoClose(vmg);
+  ifoClose(ifo);
 
-  ifo_handle_t *ifo = ifoOpen(dvd, title);
+  ifo = ifoOpen(dvd, title);
   if (ifo == NULL) {
     perror("ifoOpen");
     DVDClose(dvd);
