@@ -4,6 +4,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <dvdread/ifo_read.h>
+
 #include "split.h"
 
 #define DVD_SECTOR_SIZE 2048
@@ -14,17 +16,40 @@ struct extent_t {
   uint32_t last;
 };
 
-size_t populate_pgc_extents(pgcit_t *pgcit, struct extent_t **extents) {
-  *extents = malloc(sizeof(struct extent_t) * pgcit->nr_of_pgci_srp);
+size_t populate_pgc_extents(char *path, size_t title, struct extent_t **extents) {
+  dvd_reader_t *dvd = DVDOpen(path);
+  if (dvd == NULL) {
+    perror("DVDOpen");
+    exit(-4);
+  }
 
-  for (size_t i = 0; i < pgcit->nr_of_pgci_srp; i++) {
+  ifo_handle_t *vmg = ifoOpen(dvd, 0);
+  if (vmg == NULL) {
+    perror("ifoOpen");
+    exit(-5);
+  }
+
+  ifo_handle_t *ifo = ifoOpen(dvd, title);
+  if (ifo == NULL) {
+    perror("ifoOpen");
+    exit(-6);
+  }
+
+  pgcit_t *pgcit = ifo->vts_pgcit;
+  size_t count = pgcit->nr_of_pgci_srp;
+
+  *extents = malloc(sizeof(struct extent_t) * count);
+
+  for (size_t i = 0; i < count; i++) {
     pgc_t *pgc = pgcit->pgci_srp[i].pgc;
     uint32_t first = pgc->cell_playback[0].first_sector;
     uint32_t last = pgc->cell_playback[pgc->nr_of_cells - 1].last_sector;
     (*extents)[i] = (struct extent_t){first, last};
   }
 
-  return pgcit->nr_of_pgci_srp;
+  DVDClose(dvd);
+
+  return count;
 }
 
 size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents) {
