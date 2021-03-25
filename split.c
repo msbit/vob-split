@@ -8,7 +8,6 @@
 
 #include "split.h"
 
-#define DVD_SECTOR_SIZE 2048
 #define MAX_VOB_PER_VTS 10
 
 struct extent_t {
@@ -94,7 +93,7 @@ int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
     struct stat st;
     stat(filename, &st);
 
-    uint32_t last = first + (st.st_size / DVD_SECTOR_SIZE);
+    uint32_t last = first + (st.st_size / DVD_VIDEO_LB_LEN);
     (*extents)[index++] = (extent_t){first, last - 1};
     first = last;
   }
@@ -118,7 +117,7 @@ int split(const char *path, size_t title,
   FILE *in = NULL;
   FILE *out = NULL;
 
-  char buffer[DVD_SECTOR_SIZE];
+  char buffer[DVD_VIDEO_LB_LEN];
 
   while (in_index < vob_extent_count && out_index < pgc_extent_count) {
     if (in == NULL) {
@@ -135,13 +134,13 @@ int split(const char *path, size_t title,
       out = fopen(filename, "w");
     }
 
-    if (fread(buffer, DVD_SECTOR_SIZE, 1, in) < 1) {
+    if (fread(buffer, DVD_VIDEO_LB_LEN, 1, in) < 1) {
       perror("fread");
       return -1;
     }
     in_sector++;
 
-    if (fwrite(buffer, DVD_SECTOR_SIZE, 1, out) < 1) {
+    if (fwrite(buffer, DVD_VIDEO_LB_LEN, 1, out) < 1) {
       perror("fwrite");
       return -2;
     }
