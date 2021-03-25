@@ -72,6 +72,9 @@ int main(int argc, char **argv) {
         vob_extent_count);
 
   DVDClose(dvd);
+
+  free(vob_extents);
+  free(pgc_extents);
 }
 
 size_t populate_pgc_extents(pgcit_t *pgcit, extent_t **extents) {
