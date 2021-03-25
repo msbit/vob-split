@@ -76,18 +76,18 @@ size_t populate_vob_extents(char *path, size_t title, struct extent_t **extents)
   uint32_t first = 0;
   size_t index = 0;
   while ((dir = readdir(d)) != NULL) {
-    if (dir->d_type == DT_REG &&
-        (strstr(dir->d_name, match_prefix) == dir->d_name) &&
-        (strstr(dir->d_name, nomatch_prefix) != dir->d_name)) {
-      struct stat st;
-      char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "%s/%s", path, dir->d_name);
-      stat(filename, &st);
+    if (dir->d_type != DT_REG) { continue; }
+    if (strstr(dir->d_name, match_prefix) != dir->d_name) { continue; }
+    if (strstr(dir->d_name, nomatch_prefix) == dir->d_name) { continue; }
 
-      uint32_t last = first + (st.st_size / DVD_SECTOR_SIZE);
-      (*extents)[index++] = (struct extent_t){first, last - 1};
-      first = last;
-    }
+    struct stat st;
+    char filename[FILENAME_MAX];
+    snprintf(filename, FILENAME_MAX, "%s/%s", path, dir->d_name);
+    stat(filename, &st);
+
+    uint32_t last = first + (st.st_size / DVD_SECTOR_SIZE);
+    (*extents)[index++] = (struct extent_t){first, last - 1};
+    first = last;
   }
   closedir(d);
 
