@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,25 +17,28 @@ struct extent_t {
 };
 
 int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
+  int result = INT_MIN;
+
   dvd_reader_t *dvd = DVDOpen(path);
   if (dvd == NULL) {
     perror("DVDOpen");
-    return -1;
+    result = -1;
+    goto defer_none;
   }
 
   ifo_handle_t *ifo = ifoOpen(dvd, 0);
   if (ifo == NULL) {
     perror("ifoOpen");
-    DVDClose(dvd);
-    return -2;
+    result = -2;
+    goto defer_dvd;
   }
   ifoClose(ifo);
 
   ifo = ifoOpen(dvd, title);
   if (ifo == NULL) {
     perror("ifoOpen");
-    DVDClose(dvd);
-    return -3;
+    result = -3;
+    goto defer_dvd;
   }
 
   pgcit_t *pgcit = ifo->vts_pgcit;
@@ -43,7 +47,8 @@ int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
   *extents = calloc(count, sizeof(extent_t));
   if (*extents == NULL) {
     perror("calloc");
-    return -4;
+    result = -4;
+    goto defer_ifo;
   }
 
   for (size_t i = 0; i < count; i++) {
@@ -53,17 +58,26 @@ int populate_pgc_extents(const char *path, size_t title, extent_t **extents) {
     (*extents)[i] = (extent_t){first, last};
   }
 
+  result = count;
+
+defer_ifo:
   ifoClose(ifo);
+
+defer_dvd:
   DVDClose(dvd);
 
-  return count;
+defer_none:
+  return result;
 }
 
 int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
+  int result = INT_MIN;
+
   *extents = calloc(MAX_VOB_PER_VTS, sizeof(extent_t));
   if (*extents == NULL) {
     perror("calloc");
-    return -1;
+    result = -1;
+    goto defer_none;
   }
 
   DIR *d;
@@ -71,7 +85,8 @@ int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
   d = opendir(path);
   if (d == NULL) {
     perror("opendir");
-    return -2;
+    result = -2;
+    goto defer_none;
   }
 
   char match_prefix[20];
@@ -102,15 +117,21 @@ int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
   *extents = realloc(*extents, sizeof(extent_t) * index);
   if (*extents == NULL) {
     perror("realloc");
-    return -3;
+    result = -3;
+    goto defer_none;
   }
 
-  return index;
+  result = index;
+
+defer_none:
+  return result;
 }
 
 int split(const char *path, size_t title,
            const extent_t *pgc_extents, size_t pgc_extent_count,
            const extent_t *vob_extents, size_t vob_extent_count) {
+  int result = INT_MIN;
+
   size_t in_index = 0, out_index = 0;
   uint32_t in_sector = 0, out_sector = 0;
 
@@ -136,13 +157,15 @@ int split(const char *path, size_t title,
 
     if (fread(buffer, DVD_VIDEO_LB_LEN, 1, in) < 1) {
       perror("fread");
-      return -1;
+      result = -1;
+      goto defer_out;
     }
     in_sector++;
 
     if (fwrite(buffer, DVD_VIDEO_LB_LEN, 1, out) < 1) {
       perror("fwrite");
-      return -2;
+      result = -2;
+      goto defer_out;
     }
     out_sector++;
 
@@ -159,9 +182,14 @@ int split(const char *path, size_t title,
     }
   }
 
-  if (in != NULL) { fclose(in); }
+  result = 0;
 
+defer_out:
   if (out != NULL) { fclose(out); }
 
-  return 0;
+defer_in:
+  if (in != NULL) { fclose(in); }
+
+defer_none:
+  return result;
 }
