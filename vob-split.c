@@ -54,7 +54,8 @@ int main(int argc, char **argv) {
     goto defer_pgc_extents;
   }
 
-  int result = split(path, title, pgc_extents, pgc_extent_count, vob_extents, vob_extent_count);
+  int result = split(path, title, pgc_extents, pgc_extent_count, vob_extents,
+                     vob_extent_count);
   if (result < 0) {
     exit_code = result;
     goto defer_vob_extents;

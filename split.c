@@ -98,9 +98,15 @@ int populate_vob_extents(const char *path, size_t title, extent_t **extents) {
   uint32_t first = 0;
   size_t index = 0;
   while ((dir = readdir(d)) != NULL) {
-    if (dir->d_type != DT_REG) { continue; }
-    if (strstr(dir->d_name, match_prefix) != dir->d_name) { continue; }
-    if (strstr(dir->d_name, nomatch_prefix) == dir->d_name) { continue; }
+    if (dir->d_type != DT_REG) {
+      continue;
+    }
+    if (strstr(dir->d_name, match_prefix) != dir->d_name) {
+      continue;
+    }
+    if (strstr(dir->d_name, nomatch_prefix) == dir->d_name) {
+      continue;
+    }
 
     char filename[FILENAME_MAX];
     snprintf(filename, FILENAME_MAX, "%s/%s", path, dir->d_name);
@@ -127,9 +133,9 @@ defer_none:
   return result;
 }
 
-int split(const char *path, size_t title,
-           const extent_t *pgc_extents, size_t pgc_extent_count,
-           const extent_t *vob_extents, size_t vob_extent_count) {
+int split(const char *path, size_t title, const extent_t *pgc_extents,
+          size_t pgc_extent_count, const extent_t *vob_extents,
+          size_t vob_extent_count) {
   int result = INT_MIN;
 
   size_t in_index = 0, out_index = 0;
@@ -143,7 +149,8 @@ int split(const char *path, size_t title,
   while (in_index < vob_extent_count && out_index < pgc_extent_count) {
     if (in == NULL) {
       char filename[FILENAME_MAX];
-      snprintf(filename, FILENAME_MAX, "%s/VTS_%02zu_%zu.VOB", path, title, in_index + 1);
+      snprintf(filename, FILENAME_MAX, "%s/VTS_%02zu_%zu.VOB", path, title,
+               in_index + 1);
       fprintf(stdout, "opening %s\n", filename);
       in = fopen(filename, "r");
     }
@@ -185,9 +192,13 @@ int split(const char *path, size_t title,
   result = 0;
 
 defer_files:
-  if (out != NULL) { fclose(out); }
+  if (out != NULL) {
+    fclose(out);
+  }
 
-  if (in != NULL) { fclose(in); }
+  if (in != NULL) {
+    fclose(in);
+  }
 
   return result;
 }
