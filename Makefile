@@ -1,7 +1,12 @@
-CFLAGS += $(shell pkg-config --cflags dvdread)
-LDLIBS += $(shell pkg-config --libs dvdread)
-OBJECT_FILES = split.o vob-split.o
-TARGETS = vob-split
+CFLAGS := $(shell pkg-config --cflags dvdread)
+CFLAGS += -Wall
+CFLAGS += -Wextra
+
+LDLIBS := $(shell pkg-config --libs dvdread)
+
+OBJECT_FILES := split.o vob-split.o
+
+TARGETS := vob-split
 
 all: $(TARGETS)
 

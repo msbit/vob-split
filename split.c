@@ -158,14 +158,14 @@ int split(const char *path, size_t title,
     if (fread(buffer, DVD_VIDEO_LB_LEN, 1, in) < 1) {
       perror("fread");
       result = -1;
-      goto defer_out;
+      goto defer_files;
     }
     in_sector++;
 
     if (fwrite(buffer, DVD_VIDEO_LB_LEN, 1, out) < 1) {
       perror("fwrite");
       result = -2;
-      goto defer_out;
+      goto defer_files;
     }
     out_sector++;
 
@@ -184,12 +184,10 @@ int split(const char *path, size_t title,
 
   result = 0;
 
-defer_out:
+defer_files:
   if (out != NULL) { fclose(out); }
 
-defer_in:
   if (in != NULL) { fclose(in); }
 
-defer_none:
   return result;
 }
