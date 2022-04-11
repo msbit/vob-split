@@ -1,13 +1,13 @@
 CFLAGS += $(shell pkg-config --cflags dvdread)
 LDLIBS += $(shell pkg-config --libs dvdread)
-OBJECT_FILES = main.o split.o
-TARGETS = main
+OBJECT_FILES = split.o vob-split.o
+TARGETS = vob-split
 
-all: main
+all: $(TARGETS)
 
-main: $(OBJECT_FILES)
+vob-split: $(OBJECT_FILES)
 
-main.o: main.c split.h
+vob-split.o: vob-split.c split.h
 
 split.o: split.c split.h
 
